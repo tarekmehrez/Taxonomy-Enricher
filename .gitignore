@@ -1,0 +1,6 @@
+data/*
+assignment.txt
+**/.DS_Store
+*.pyc
+build/*
+dist/*
