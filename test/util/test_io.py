@@ -1,8 +1,9 @@
 import unittest
-import tempfile
 from nose.tools import raises
 from collections import namedtuple
 
+from tempfile_helper import declare_temp_file
+from tempfile_helper import create_temp_file
 from taxonomy_extractor.util import io
 from taxonomy_extractor.exceptions import UnrecognizedFileExtensionError
 
@@ -71,25 +72,25 @@ code_table_dict = {'SDE': Taxonomy(id='SDE',
 class TestIO(unittest.TestCase):
 
     def test_read_filled_xml_taxonomy(self):
-        temp_file = self.create_temp_file(taxonomy_xml, '.xml')
+        temp_file = create_temp_file(taxonomy_xml, '.xml')
         output = io.read(temp_file)
 
         self.assertDictEqual(output, taxonomy_dict)
 
     def test_read_filled_tsv_taxonomy(self):
-        temp_file = self.create_temp_file(taxonomy_tsv, '.tsv')
+        temp_file = create_temp_file(taxonomy_tsv, '.tsv')
         output = io.read(temp_file)
 
         self.assertDictEqual(output, taxonomy_dict)
 
     def test_read_empty_tsv_taxonomy(self):
-        temp_file = self.create_temp_file(code_table_tsv, '.tsv')
+        temp_file = create_temp_file(code_table_tsv, '.tsv')
         output = io.read(temp_file)
 
         self.assertDictEqual(output, code_table_dict)
 
     def test_write_filled_tsv_taxonomy(self):
-        temp_file = self.declare_temp_file('.tsv')
+        temp_file = declare_temp_file('.tsv')
 
         io.write(taxonomy_dict, temp_file)
         output = io.read(temp_file)
@@ -98,37 +99,9 @@ class TestIO(unittest.TestCase):
 
     @raises(UnrecognizedFileExtensionError)
     def test_read_wrong_extension(self):
-        temp_file = self.create_temp_file(taxonomy_tsv, '.json')
+        temp_file = create_temp_file(taxonomy_tsv, '.json')
         io.read(temp_file)
 
     @raises(UnrecognizedFileExtensionError)
     def test_write_wrong_extension(self):
         io.write(taxonomy_dict, 'temp.json')
-
-    def create_temp_file(self, content, extension):
-        """
-        Create a temp file with some content and extension.
-
-        params:
-            content (obj): file content to write
-            extension (str): file extension preceded by a dot
-
-        returns:
-            file's name
-
-        """
-        temp_file = self.declare_temp_file(extension)
-        with open(temp_file, mode='wb') as f:
-            f.write(content)
-
-        return temp_file
-
-    def declare_temp_file(self, extension):
-        """
-        Create an empty temp file.
-
-        params: see self.create_temp_file
-        returns: see self.create_temp_file
-        """
-        temp_file = tempfile.NamedTemporaryFile(suffix=extension, delete=False)
-        return temp_file.name

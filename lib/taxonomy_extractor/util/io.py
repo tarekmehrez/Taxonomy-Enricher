@@ -3,6 +3,7 @@ import os
 import csv
 from collections import namedtuple
 
+from ConfigParser import SafeConfigParser
 from lxml import etree
 
 from taxonomy_extractor.exceptions import UnrecognizedFileExtensionError
@@ -67,7 +68,7 @@ def read(file_path):
     params:
         file_path: (str) path to input file
     returns:
-        dict{id: Taxonomy}: content of the file
+        obj: content of the file
     """
     extension = get_extension(file_path)
 
@@ -77,11 +78,27 @@ def read(file_path):
     elif extension == '.tsv':
         content = _read_tsv(file_path)
 
+    elif extension == '.ini':
+        content = _read_ini(file_path)
+
     else:
         raise UnrecognizedFileExtensionError(
             'Extension %s is not recognized' % extension)
 
     return content
+
+
+def _read_ini(file_path):
+    """
+    Read ini config files.
+
+    params: see util/io.py::read
+    returns: see util/io.py::read
+    """
+    parser = SafeConfigParser()
+    parser.read(file_path)
+
+    return parser
 
 
 def _read_tsv(file_path):
