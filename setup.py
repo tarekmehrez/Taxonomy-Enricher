@@ -16,9 +16,10 @@ config = dict(
     package_dir={'': 'lib'},
     packages=['taxonomy_extractor',
               'taxonomy_extractor.core',
-              'taxonomy_extractor.similarity',
+              'taxonomy_extractor.vectorspace',
               'taxonomy_extractor.exceptions',
-              'taxonomy_extractor.util']
+              'taxonomy_extractor.util',
+              'taxonomy_extractor.config']
 )
 
 setup(**config)

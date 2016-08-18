@@ -1,4 +1,5 @@
+import config
 import core
-import similarity
+import vectorspace
 import exceptions
 import util
