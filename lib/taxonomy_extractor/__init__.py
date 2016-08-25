@@ -1,5 +1,6 @@
 import config
 import core
-import vectorspace
 import exceptions
 import util
+import vectorspace
+import main

@@ -1,3 +1,4 @@
 from exceptions import UnrecognizedFileExtensionError
 from exceptions import LanguageNotSupportedError
 from exceptions import RequiredConfigOptionNotFoundError
+from exceptions import PhraseNotInVocabError

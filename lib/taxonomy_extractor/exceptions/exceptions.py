@@ -1,6 +1,4 @@
-"""
-Contains package-specific extensions.
-"""
+"""Contains package-specific extensions."""
 
 
 class UnrecognizedFileExtensionError(Exception):
@@ -25,6 +23,15 @@ class RequiredConfigOptionNotFoundError(Exception):
 
     """
     Required config option not found error.
+    """
+
+    pass
+
+
+class PhraseNotInVocabError(Exception):
+
+    """
+    Phrase not found in vocab error.
     """
 
     pass

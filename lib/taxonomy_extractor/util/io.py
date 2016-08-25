@@ -1,33 +1,19 @@
 """Contains the io module that reads in tsv and xml files."""
 import os
 import csv
-from collections import namedtuple
+import cPickle
 
 from ConfigParser import SafeConfigParser
 from lxml import etree
 
+from taxonomy_extractor.core import Taxonomy
 from taxonomy_extractor.exceptions import UnrecognizedFileExtensionError
 
-
-Taxonomy = namedtuple('Taxonomy', ['id', 'head', 'synonyms'])
 CODE_XML_TAG = 'CodeRecord'
 CODE_ID_XML_TAG = 'CodeID'
 CODE_DESCRIPTION_XML_TAG = 'CodeDescription'
 INSTANCE_DESCRIPTION_XML_TAG = 'InstanceDescription'
-
-
-def get_extension(file_path):
-    """
-    Get extension of the file.
-
-    params:
-        file_path(str): path to file
-
-    returns:
-        str: extension preceded by a dot (e.g .xml)
-    """
-    _, extension = os.path.splitext(file_path)
-    return extension
+ENCODING = 'utf8'
 
 
 def write(file_content, file_path):
@@ -42,9 +28,12 @@ def write(file_content, file_path):
 
     if extension == '.tsv':
         _write_tsv(file_content, file_path)
+    elif extension == '.pkl':
+        _write_pkl(file_content, file_path)
     else:
         raise UnrecognizedFileExtensionError(
-            'Extension %s is not recognized' % extension)
+            'file %s has an unrecognized extension %s' %
+            (file_path, extension))
 
 
 def _write_tsv(file_content, file_path):
@@ -55,10 +44,26 @@ def _write_tsv(file_content, file_path):
     """
     with open(file_path, 'wb') as f:
         for _, taxonomy in file_content.iteritems():
-            f.write('%s\t%s\n' % (taxonomy.id, taxonomy.head))
+            taxonomy_id, taxonomy_head, synonyms = encode([taxonomy.id,
+                                                           taxonomy.head,
+                                                           taxonomy.synonyms])
 
-            for synonym in taxonomy.synonyms:
+            f.write('%s\t%s\n' % (taxonomy_id, taxonomy_head))
+
+            for synonym in synonyms:
                 f.write('-\t%s\n' % synonym)
+
+
+def _write_pkl(content, file_path):
+    """
+    Write content to a pkl format.
+
+    params:
+        content (obj): content of the file to be written
+        file_path (str): path to the output file
+    """
+    with open(file_path, 'wb') as f:
+        cPickle.dump(content, f, 2)
 
 
 def read(file_path):
@@ -81,9 +86,29 @@ def read(file_path):
     elif extension == '.ini':
         content = _read_ini(file_path)
 
+    elif extension == '.pkl':
+        content = _read_pkl(file_path)
+
     else:
         raise UnrecognizedFileExtensionError(
-            'Extension %s is not recognized' % extension)
+            'file %s has an unrecognized extension %s' %
+            (file_path, extension))
+
+    return content
+
+
+def _read_pkl(file_path):
+    """
+    Read pkl files.
+
+    params:
+        file_path (str): path to the file to be read
+
+    Returns:
+        obj: content of the pkl file
+    """
+    with open(file_path, 'rb') as f:
+        content = cPickle.load(f)
 
     return content
 
@@ -119,10 +144,10 @@ def _read_tsv(file_path):
         taxonomies = {}
 
         for row in rows:
-            taxonomy_id, token = row
+            taxonomy_id, token = decode(row)
 
             # new taxonomy head
-            if taxonomy_id != '-':
+            if taxonomy_id != u'-':
                 current_taxonomy = Taxonomy(taxonomy_id, token, synonyms=[])
                 taxonomies[taxonomy_id] = current_taxonomy
 
@@ -145,14 +170,20 @@ def _read_xml(file_path):
     codes = tree.xpath('.//%s' % CODE_XML_TAG)
 
     for code in codes:
-        taxonomy_id, taxonomy_head, synonyms = _extract_taxonomy(code)
-        taxonomies[taxonomy_id] = Taxonomy(
-            taxonomy_id, taxonomy_head, synonyms)
+        taxonomy_id, taxonomy_head, synonyms = _extract_taxonomy_xml_tree(code)
+
+        taxonomy_id, taxonomy_head, synonyms = decode([taxonomy_id,
+                                                       taxonomy_head,
+                                                       synonyms])
+        synonyms = filter(None, synonyms)
+        taxonomies[taxonomy_id] = Taxonomy(taxonomy_id,
+                                           taxonomy_head,
+                                           synonyms)
 
     return taxonomies
 
 
-def _extract_taxonomy(etree):
+def _extract_taxonomy_xml_tree(tree):
     """
     Given a code xml etree, extract its id, head and synonyms.
 
@@ -163,9 +194,9 @@ def _extract_taxonomy(etree):
         str: taxonomy head token
         list[str]: synonyms tokens
     """
-    head_as_etrees = etree.xpath('.//%s' % CODE_DESCRIPTION_XML_TAG)
-    id_as_etrees = etree.xpath('.//%s' % CODE_ID_XML_TAG)
-    synonyms_as_etrees = etree.xpath('.//%s' % INSTANCE_DESCRIPTION_XML_TAG)
+    head_as_etrees = tree.xpath('.//%s' % CODE_DESCRIPTION_XML_TAG)
+    id_as_etrees = tree.xpath('.//%s' % CODE_ID_XML_TAG)
+    synonyms_as_etrees = tree.xpath('.//%s' % INSTANCE_DESCRIPTION_XML_TAG)
 
     # taking first element since the list size is 1
     head_as_str = head_as_etrees[0].text
@@ -173,3 +204,64 @@ def _extract_taxonomy(etree):
     synonyms_as_str = [synonym.text for synonym in synonyms_as_etrees]
 
     return id_as_str, head_as_str, synonyms_as_str
+
+
+def exists(file_path):
+    """
+    Check if file exists.
+
+    params:
+        file_path (str)
+
+    returns:
+        bool
+    """
+    return os.path.exists(file_path)
+
+
+def get_extension(file_path):
+    """
+    Get extension of the file.
+
+    params:
+        file_path(str): path to file
+
+    returns:
+        str: extension preceded by a dot (e.g .xml)
+    """
+    _, extension = os.path.splitext(file_path)
+    return extension
+
+
+def decode(content, encoding=ENCODING):
+    """
+    Decode content as a str or list.
+
+    params:
+        content (str|list[str])
+        encoding (str) [default: utf8]
+
+    returns:
+        content (unicode| list[uniccode])
+    """
+    if isinstance(content, str):
+        return content.decode(encoding)
+    if isinstance(content, (list, tuple)):
+        return [decode(item, encoding) for item in content]
+
+
+def encode(content, encoding=ENCODING):
+    """
+    Encode content as a str or list.
+
+    params:
+        content (str|list[str])
+        encoding (str) [default: utf8]
+
+    returns:
+        content (unicode| list[uniccode])
+    """
+    if isinstance(content, unicode):
+        return content.encode(encoding)
+    if isinstance(content, (list, tuple)):
+        return [encode(item, encoding) for item in content]

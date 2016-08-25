@@ -1,7 +1,7 @@
 """Contains string helper functions."""
-import string
 import re
 import difflib
+from difflib import SequenceMatcher
 
 from nltk.tokenize import word_tokenize
 from nltk.stem import SnowballStemmer
@@ -24,8 +24,10 @@ def tokenize(text, language='english'):
     returns:
        list[str]: tokenized and stemmed text
     """
+    text = text.strip()
+
     # strip punctiations
-    text = text.translate(string.maketrans("", ""), string.punctuation)
+    text = re.sub(r'[^\w\s]', '', text)
 
     # multiple spaces to one
     text = re.sub('[\s]+', ' ', text)
@@ -39,10 +41,11 @@ def tokenize(text, language='english'):
     # stemming
     stemmer = SnowballStemmer(language, ignore_stopwords=True)
     stemmed_tokens = [str(stemmer.stem(token)) for token in tokens]
+
     return stemmed_tokens
 
 
-def get_closest_word(token, vocab):
+def most_similar(token, vocab):
     """
     Given a word and the entire vocab, get closest word in vocab.
 
@@ -53,4 +56,22 @@ def get_closest_word(token, vocab):
     returns:
         str: most similar word
     """
-    return difflib.get_close_matches(token, vocab)[0]
+    most_similar = difflib.get_close_matches(token, vocab)
+    if most_similar == []:
+        return ''
+    else:
+        return most_similar[0]
+
+
+def similarity(token1, token2):
+    """
+    Get similarity between two tokens.
+
+    params:
+        token1 (str)
+        token2 (str)
+
+    returns:
+        float
+    """
+    return SequenceMatcher(None, token1, token2).ratio()

@@ -19,13 +19,13 @@ def add_options():
 
     options.append(Option(section='default',
                           param='empty_taxonomies',
-                          type=(list, str),
+                          type=str,
                           required=True,
                           default_value=None))
 
     options.append(Option(section='default',
                           param='output_taxonomies',
-                          type=(list, str),
+                          type=str,
                           required=True,
                           default_value=None))
 
@@ -35,12 +35,25 @@ def add_options():
                           required=False,
                           default_value='english'))
 
-    # word2vec options
-    options.append(Option(section='word2vec',
-                          param='mode',
+    options.append(Option(section='default',
+                          param='string_threshold',
+                          type=float,
+                          required=False,
+                          default_value=0.7))
+
+    options.append(Option(section='default',
+                          param='vector_threshold',
+                          type=float,
+                          required=False,
+                          default_value=0.3))
+
+    options.append(Option(section='default',
+                          param='vector_space_output',
                           type=str,
                           required=True,
                           default_value=None))
+
+    # word2vec options
 
     options.append(Option(section='word2vec',
                           param='min_count',
