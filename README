@@ -80,3 +80,6 @@ d. using stemming was decided, trying to enhance the quality of vectors
 e. future work:
 - train a model to adjust the weights (thresholds) of string and vector similarity instead of hardcoding it
 - formulate the problem as a binary classification problem (relevant or not), including features such as diff in wor2vec vectors, bag of words, tfidf, string similarity .. etc. per pair of phrases, but this requries more data
+
+f. i used all provided taxonomies with different formats, created some adhoc list of codes to be filled in data/experience.codetables/empty.tsv
+g. that was also tested to fill in existing taxonomy data/experience.codetables/experience.normalized4.tsv
