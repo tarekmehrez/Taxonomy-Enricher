@@ -31,12 +31,12 @@ class Option(object):
         if self.type == float:
             self.value = float(value)
 
-        if self.type == int:
+        elif self.type == int:
             self.value = int(value)
 
         # type is list of a certain type, example (list, float)
         # saying the type is list of floats
-        if isinstance(self.type, tuple):
+        elif isinstance(self.type, tuple):
             list_type = self.type[1]
             parsed_values = value.split('\n')
             self.value = [list_type(item) for item in parsed_values]

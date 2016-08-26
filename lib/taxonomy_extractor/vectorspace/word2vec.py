@@ -30,6 +30,7 @@ class Word2Vec(object):
         returns:
             gensim.models.Word2Vec: trained model
         """
+        print train_params
         self.model = GensimWord2Vec(sentences, **train_params)
 
     def create_phrase_model(self, phrases):

@@ -36,12 +36,6 @@ def add_options():
                           default_value='english'))
 
     options.append(Option(section='default',
-                          param='string_threshold',
-                          type=float,
-                          required=False,
-                          default_value=0.7))
-
-    options.append(Option(section='default',
                           param='vector_threshold',
                           type=float,
                           required=False,
@@ -60,6 +54,12 @@ def add_options():
                           type=int,
                           required=False,
                           default_value=0))
+
+    options.append(Option(section='word2vec',
+                          param='iter',
+                          type=int,
+                          required=False,
+                          default_value=10))
 
     options.append(Option(section='word2vec',
                           param='window',

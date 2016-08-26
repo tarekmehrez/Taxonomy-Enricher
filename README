@@ -1,0 +1,82 @@
+This file epxlains:
+1- The solution's approach
+2- The code structure
+3- How to run the code
+4- Workflow
+5- Notes
+
+1. The solution's approach:
+a. Read in several code tables
+b. Build taxonomies structure keeping track of heads and synonyms
+c. Extract tokens for each phrase (whether in heads or synonyms)
+d. Train word2vec model
+-- Treat each taxonomy as a sentence (series of tokens)
+-- Feed taxonomies to a word2vec model, using gensim's api
+-- Assign vectors to phrases by averaging vectors of its tokens
+e. Given an empty code table (to be filled)
+- Assign phrases to code tables by string similarity (called early attractors)
+- Then assign unattracted phrases to attracted one by vector similarity
+
+f. When (not) to assign a phrase to a code table, or attracted phrase?
+- dfflib similarity function returns the nearest string in the vocab, if the function returned an empty list, this means that no string in the vocab is close enough to the input token. This is when the 'do not assign phrase to table' decision is being made
+- On the other hand, after measuring cosine similarity between vectors, and returning the closest vector to the input phrase, if the similarity is above a certain threshold (which is mentioned in the config file for now) then a 'do not assign phrase to attractor' decision is done.
+
+2- The code structure
+a. config:
+- add options to be parsed from an ini config file
+- parse ini config file
+- convert parsed config to a dict, used later by textractor
+
+b. core:
+- building blocks for code tables: (CodeTable, Taxonomy, Phrase)
+
+c. exceptions:
+- package-specific exceptions
+
+d. main:
+- main textractor file that drives the entire logic putting building blocks together
+- reads in code tables
+- create CodeTable instances and parse taxonomies
+- Train word2vec model
+- assign phrases to new empty table following the apporach mentioned above
+
+e. util:
+- io: handles reads and writes with different extensions
+- logger: package logger
+- math_helpers: some helper functions for dealing with vectors
+- plot: plot vector space
+- string_helpers: tokenization and string similarity
+
+f. vectorspace:
+- word2vec training
+
+3- How to run the code
+a. Dependencies: dfflib, nltk, gensim, numpy, scipy
+
+b. Building the package:
+python setup.py install
+
+c. running tests:
+nosetests test --with-coverage --cover-package=taxonomy_extractor
+
+d. running the package using the script in bin dir, and the example config file in the root dir:
+python bin/textractor --config config.ini
+
+4. Workflow:
+a. Starting point bin/textractor that takes in config file as a param
+b. Run Textractor::run
+c. Read in input code tables
+d. Check if the model exists, otherwise train a new one
+e. Read in output table
+f. fill in output table and write it back to disk
+
+
+5- Notes:
+a. word2vec was chosen to make sense of the cooccurrences of tokens among different taxonomies
+b. data wasn't that big, so had to play around with word2vec's params, such as increasing interations and decreasing vector size
+c. The Phrase object was introduced to keep track of tokens (for training word2vec) and the phrase level for assignment
+d. using stemming was decided, trying to enhance the quality of vectors
+
+e. future work:
+- train a model to adjust the weights (thresholds) of string and vector similarity instead of hardcoding it
+- formulate the problem as a binary classification problem (relevant or not), including features such as diff in wor2vec vectors, bag of words, tfidf, string similarity .. etc. per pair of phrases, but this requries more data

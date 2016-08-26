@@ -34,7 +34,7 @@ class Textractor(object):
         params:
             parsed_config (dict)
         """
-        logger.debug('Starting Textractor')
+        logger.debug('Starting Textractor with args %s' % parsed_config)
 
         self.read_input_tables(parsed_config['default']['filled_taxonomies'])
         self.train_vector_space(

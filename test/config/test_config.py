@@ -26,7 +26,6 @@ config_dict = {
             'file_2.tsv',
             'file_3.tsv'],
         'language': 'english',
-        'string_threshold': 0.7,
         'vector_threshold': 0.3,
         'vector_space_output': 'data/test',
         'empty_taxonomies': 'input.tsv'},
@@ -34,6 +33,7 @@ config_dict = {
         'workers': 4,
         'negative': 5,
         'window': 5,
+        'iter': 10,
         'alpha': 0.025,
         'min_count': 0,
         'size': 50}}
@@ -48,5 +48,5 @@ class TestConfig(unittest.TestCase):
         temp_file = create_temp_file(config_str, '.ini')
         self.parser.parse_config(temp_file)
         output = self.parser.config_to_dict()
-
+        print output
         self.assertDictEqual(output, config_dict)
